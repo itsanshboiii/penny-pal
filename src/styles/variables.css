@@ -1,0 +1,74 @@
+:root {
+  /* Primary Colors */
+  --primary: #3b82f6;  /* Blue */
+  --primary-dark: #2563eb;
+  --primary-light: #60a5fa;
+  
+  /* Secondary Colors */
+  --secondary: #8b5cf6;  /* Purple */
+  --secondary-dark: #6d28d9;
+  --secondary-light: #a78bfa;
+  
+  /* Accent Colors */
+  --accent: #f59e0b;  /* Amber */
+  --accent-dark: #d97706;
+  --accent-light: #fbbf24;
+  
+  /* Success, Error, Warning */
+  --success: #10b981;  /* Emerald */
+  --error: #ef4444;    /* Red */
+  --warning: #f97316;  /* Orange */
+  
+  /* Neutral Colors */
+  --bg-white: #ffffff;
+  --bg-gray-50: #f9fafb;
+  --bg-gray-100: #f3f4f6;
+  --bg-gray-200: #e5e7eb;
+  
+  /* Text Colors */
+  --text-dark: #111827;
+  --text-medium: #4b5563;
+  --text-light: #9ca3af;
+  
+  /* Dark Mode Colors */
+  --dark-bg-primary: #1f2937;
+  --dark-bg-secondary: #111827;
+  --dark-text-primary: #f9fafb;
+  --dark-text-secondary: #e5e7eb;
+  
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  
+  /* Border Radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  
+  /* Typography */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] {
+  --background-color: #1F2937;
+  --text-primary: #F9FAFB;
+} 

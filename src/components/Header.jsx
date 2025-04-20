@@ -1,16 +1,20 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
+import ThemeToggle from './ThemeToggle';
+import '../styles/Header.css';
 
 const Header = () => {
   return (
-    <header className="w-full bg-emerald-primary p-4 text-white shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Penny Pal</h1>
-        <nav>
-          <ul className="flex space-x-4">
-            <li><Link to="/" className="hover:underline">Home</Link></li>
-            <li><Link to="#features" className="hover:underline">Features</Link></li>
-          </ul>
-        </nav>
+    <header className="header">
+      <div className="header-container">
+        <Link to="/" className="header-logo">Penny Pal</Link>
+        <div className="header-right">
+          <nav className="header-nav">
+            <Link to="/" className="nav-link">Home</Link>
+            <Link to="#features" className="nav-link">Features</Link>
+          </nav>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

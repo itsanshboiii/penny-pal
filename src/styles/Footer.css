@@ -1,0 +1,135 @@
+.footer {
+  background-color: var(--bg-gray-50);
+  border-top: 1px solid var(--bg-gray-200);
+  padding: var(--space-8) 0;
+  margin-top: auto;
+}
+
+.footer-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.footer-section {
+  flex: 1;
+}
+
+.footer-logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: var(--space-4);
+  display: inline-block;
+}
+
+.footer-description {
+  color: var(--text-medium);
+  max-width: 350px;
+  margin-bottom: var(--space-4);
+}
+
+.footer-heading {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+  color: var(--text-dark);
+}
+
+.footer-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.footer-link {
+  color: var(--text-medium);
+  text-decoration: none;
+  padding: var(--space-1) 0;
+  transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: var(--primary);
+}
+
+.footer-copyright {
+  text-align: center;
+  color: var(--text-medium);
+  font-size: 0.875rem;
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--bg-gray-200);
+}
+
+.social-links {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.social-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background-color: var(--bg-gray-100);
+  color: var(--text-medium);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.social-link:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* Dark mode */
+.dark-mode .footer {
+  background-color: var(--dark-bg-secondary);
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .footer-heading {
+  color: var(--dark-text-primary);
+}
+
+.dark-mode .footer-link {
+  color: var(--dark-text-secondary);
+}
+
+.dark-mode .footer-link:hover {
+  color: var(--primary-light);
+}
+
+.dark-mode .footer-description, 
+.dark-mode .footer-copyright {
+  color: var(--dark-text-secondary);
+}
+
+.dark-mode .footer-copyright {
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+.dark-mode .social-link {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: var(--dark-text-secondary);
+}
+
+.dark-mode .social-link:hover {
+  background-color: var(--primary);
+  color: white;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+} 

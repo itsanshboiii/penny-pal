@@ -1,0 +1,118 @@
+.header {
+  background-color: white;
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 1000;
+  padding: var(--space-4) 0;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.header-logo svg {
+  width: 28px;
+  height: 28px;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.header-nav {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.nav-link {
+  color: var(--text-medium);
+  font-weight: 500;
+  text-decoration: none;
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--primary);
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.mobile-menu-button {
+  display: none;
+  background: none;
+  border: none;
+  padding: var(--space-2);
+  cursor: pointer;
+  color: var(--text-medium);
+}
+
+/* Dark mode */
+.dark-mode .header {
+  background-color: var(--dark-bg-secondary);
+}
+
+.dark-mode .header-logo {
+  color: var(--primary-light);
+}
+
+.dark-mode .nav-link {
+  color: var(--dark-text-secondary);
+}
+
+.dark-mode .nav-link:hover, 
+.dark-mode .nav-link.active {
+  color: var(--primary-light);
+  background-color: rgba(59, 130, 246, 0.2);
+}
+
+.dark-mode .mobile-menu-button {
+  color: var(--dark-text-secondary);
+}
+
+/* Mobile menu */
+@media (max-width: 768px) {
+  .mobile-menu-button {
+    display: block;
+  }
+
+  .header-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: white;
+    padding: var(--space-4);
+    flex-direction: column;
+    gap: var(--space-4);
+    border-top: 1px solid var(--bg-gray-200);
+    box-shadow: var(--shadow-md);
+  }
+
+  .header-nav.open {
+    display: flex;
+  }
+
+  .dark-mode .header-nav {
+    background-color: var(--dark-bg-secondary);
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+} 
