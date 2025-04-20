@@ -1,22 +1,13 @@
 import React from 'react';
 import '../styles/Card.css';
 
-const Card = ({ 
-  children, 
-  className = '',
-  interactive = false,
-  bordered = false,
-  ...props 
-}) => {
-  const classes = [
-    'card',
-    interactive && 'card-interactive',
-    bordered && 'card-bordered',
-    className
-  ].filter(Boolean).join(' ');
-
+const Card = ({ children, className = '', onClick, ...props }) => {
   return (
-    <div className={classes} {...props}>
+    <div 
+      className={`card ${className}`} 
+      onClick={onClick}
+      {...props}
+    >
       {children}
     </div>
   );

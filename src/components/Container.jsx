@@ -6,7 +6,7 @@ const Container = ({
   ...props 
 }) => {
   return (
-    <div className={`container mx-auto px-4 ${className}`} {...props}>
+    <div className={`container ${className}`} {...props}>
       {children}
     </div>
   );
