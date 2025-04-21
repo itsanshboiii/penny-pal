@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import '../styles/MainLayout.css';
 
@@ -6,9 +6,31 @@ const MainLayout = ({ children }) => {
   const location = useLocation();
   const [isDarkMode, setIsDarkMode] = useState(false);
   
+  // Load dark mode setting from localStorage on initial load
+  useEffect(() => {
+    const storedDarkMode = localStorage.getItem('darkMode');
+    if (storedDarkMode === 'true') {
+      setIsDarkMode(true);
+      document.body.classList.add('dark-mode');
+    } else {
+      // Always default to light mode
+      setIsDarkMode(false);
+      document.body.classList.remove('dark-mode');
+      localStorage.setItem('darkMode', 'false');
+    }
+  }, []);
+  
   const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-    document.body.classList.toggle('dark-mode');
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    
+    if (newDarkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+    
+    localStorage.setItem('darkMode', newDarkMode.toString());
   };
 
   return (
