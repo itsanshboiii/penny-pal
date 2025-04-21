@@ -112,6 +112,22 @@ npm run build
 
 The optimized build will be available in the `dist` directory.
 
+## Deployment
+
+PennyPal is deployed using Netlify's continuous deployment pipeline:
+
+1. The production build is generated using `npm run build`, which creates optimized static files in the `dist` directory
+2. The Netlify build process is configured to use this `dist` directory as the publish directory
+3. Environment variables including the Exchange Rate API key are securely stored in Netlify's environment configuration
+4. Automatic deployments are triggered on commits to the main branch
+5. Custom domain setup with automatic SSL certificate provisioning
+6. Performance optimizations including:
+   - Asset compression and minification
+   - Preloading of critical resources
+   - Cache control headers for optimal browser caching
+
+You can visit the live application at [penny-pal.netlify.app](https://penny-pal.netlify.app/)
+
 ## License
 
 [MIT License](LICENSE)
