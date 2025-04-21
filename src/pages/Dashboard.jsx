@@ -230,7 +230,7 @@ const Dashboard = () => {
             </Card>
           </Link>
           
-          <Link to="/budgets" className="action-link">
+          <Link to="/budget" className="action-link">
             <Card className="action-card">
               <div className="action-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
