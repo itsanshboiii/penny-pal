@@ -4,6 +4,7 @@ import Dashboard from './pages/Dashboard';
 import Expenses from './pages/Expenses';
 import ExpenseForm from './pages/ExpenseForm';
 import BudgetPage from './pages/BudgetPage';
+import ReportsPage from './pages/ReportsPage';
 import { ExpenseProvider } from './context/ExpenseContext';
 import './styles/variables.css';
 import './styles/App.css';
@@ -19,6 +20,7 @@ function App() {
           <Route path="/expenses/add" element={<ExpenseForm />} />
           <Route path="/expenses/edit/:id" element={<ExpenseForm />} />
           <Route path="/budget" element={<BudgetPage />} />
+          <Route path="/reports" element={<ReportsPage />} />
           {/* Add more routes as needed */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

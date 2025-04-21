@@ -194,6 +194,19 @@ const Dashboard = () => {
               <p>Set and track budgets</p>
             </Card>
           </Link>
+          
+          <Link to="/reports" className="action-link">
+            <Card className="action-card">
+              <div className="action-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                </svg>
+              </div>
+              <h3>View Reports</h3>
+              <p>Analyze your spending</p>
+            </Card>
+          </Link>
         </div>
         
         <div className="dashboard-recent">
