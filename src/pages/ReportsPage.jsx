@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import Card from '../components/Card';
 import { useExpenses } from '../context/ExpenseContext';
+import { useCurrency } from '../context/CurrencyContext';
 import { expenseCategories, categoryColors } from '../utils/categories';
 import {
   Chart as ChartJS,
@@ -32,9 +33,15 @@ ChartJS.register(
 );
 
 const ReportsPage = () => {
-  const { expenses } = useExpenses();
+  const { expenses, budgetCurrency } = useExpenses();
+  const currency = useCurrency();
   const [dateRange, setDateRange] = useState('month'); // 'month', 'quarter', 'year'
   const [selectedCategory, setSelectedCategory] = useState('all');
+  
+  // Force update when currency changes
+  useEffect(() => {
+    console.log('Currency in ReportsPage changed to:', currency?.currency?.code);
+  }, [currency, currency?.currency?.code]);
   
   // Get filtered expenses based on date range
   const filteredExpenses = useMemo(() => {
@@ -68,6 +75,14 @@ const ReportsPage = () => {
     return filteredExpenses.filter(expense => expense.category === selectedCategory);
   }, [filteredExpenses, selectedCategory]);
   
+  // Helper to convert expense amount to current currency
+  const convertExpenseAmount = (expense) => {
+    if (currency) {
+      return currency.convertAmount(expense.amount, expense.currency || budgetCurrency);
+    }
+    return expense.amount;
+  };
+  
   // Calculate category totals for pie chart
   const categoryData = useMemo(() => {
     const totals = {};
@@ -77,7 +92,9 @@ const ReportsPage = () => {
     });
     
     filteredExpenses.forEach(expense => {
-      totals[expense.category] = (totals[expense.category] || 0) + expense.amount;
+      // Convert to current currency
+      const convertedAmount = convertExpenseAmount(expense);
+      totals[expense.category] = (totals[expense.category] || 0) + convertedAmount;
     });
     
     return {
@@ -92,7 +109,7 @@ const ReportsPage = () => {
         },
       ],
     };
-  }, [filteredExpenses]);
+  }, [filteredExpenses, currency, budgetCurrency]);
   
   // Calculate monthly spending for line chart
   const monthlySpendingData = useMemo(() => {
@@ -107,7 +124,9 @@ const ReportsPage = () => {
       const expenseDate = new Date(expense.date);
       if (expenseDate.getFullYear() === currentYear) {
         const month = expenseDate.getMonth();
-        monthlyTotals[month] += expense.amount;
+        // Convert to current currency
+        const convertedAmount = convertExpenseAmount(expense);
+        monthlyTotals[month] += convertedAmount;
       }
     });
     
@@ -128,7 +147,7 @@ const ReportsPage = () => {
         },
       ],
     };
-  }, [expenses]);
+  }, [expenses, currency, budgetCurrency]);
   
   // Calculate weekly spending for bar chart
   const weeklySpendingData = useMemo(() => {
@@ -150,7 +169,9 @@ const ReportsPage = () => {
     thisMonthExpenses.forEach(expense => {
       const expenseDate = new Date(expense.date);
       const weekNumber = Math.ceil(expenseDate.getDate() / 7);
-      weeklyExpenses[weekNumber] = (weeklyExpenses[weekNumber] || 0) + expense.amount;
+      // Convert to current currency
+      const convertedAmount = convertExpenseAmount(expense);
+      weeklyExpenses[weekNumber] = (weeklyExpenses[weekNumber] || 0) + convertedAmount;
     });
     
     // Create array of weekly totals
@@ -166,10 +187,13 @@ const ReportsPage = () => {
         },
       ],
     };
-  }, [expenses]);
+  }, [expenses, currency, budgetCurrency]);
   
   // Format currency
   const formatCurrency = (amount) => {
+    if (currency) {
+      return currency.formatAmount(amount);
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -179,8 +203,12 @@ const ReportsPage = () => {
   
   // Calculate total amount spent in selected period
   const totalSpent = useMemo(() => {
-    return categoryFilteredExpenses.reduce((total, expense) => total + expense.amount, 0);
-  }, [categoryFilteredExpenses]);
+    return categoryFilteredExpenses.reduce((total, expense) => {
+      // Convert to current currency
+      const convertedAmount = convertExpenseAmount(expense);
+      return total + convertedAmount;
+    }, 0);
+  }, [categoryFilteredExpenses, currency, budgetCurrency]);
   
   // Calculate average expense amount
   const averageExpense = useMemo(() => {
@@ -191,11 +219,18 @@ const ReportsPage = () => {
   // Find highest expense
   const highestExpense = useMemo(() => {
     if (categoryFilteredExpenses.length === 0) return { amount: 0 };
-    return categoryFilteredExpenses.reduce(
-      (max, expense) => expense.amount > max.amount ? expense : max, 
-      { amount: 0 }
+    
+    // Convert all expenses to current currency for comparison
+    const convertedExpenses = categoryFilteredExpenses.map(expense => ({
+      ...expense,
+      convertedAmount: convertExpenseAmount(expense)
+    }));
+    
+    return convertedExpenses.reduce(
+      (max, expense) => expense.convertedAmount > max.convertedAmount ? expense : max, 
+      { convertedAmount: 0 }
     );
-  }, [categoryFilteredExpenses]);
+  }, [categoryFilteredExpenses, currency, budgetCurrency]);
   
   // Get spending by day of week
   const spendingByDayOfWeek = useMemo(() => {
@@ -204,7 +239,9 @@ const ReportsPage = () => {
     categoryFilteredExpenses.forEach(expense => {
       const expenseDate = new Date(expense.date);
       const dayOfWeek = expenseDate.getDay(); // 0 is Sunday, 6 is Saturday
-      dayTotals[dayOfWeek] += expense.amount;
+      // Convert to current currency
+      const convertedAmount = convertExpenseAmount(expense);
+      dayTotals[dayOfWeek] += convertedAmount;
     });
     
     return {
@@ -217,7 +254,7 @@ const ReportsPage = () => {
         },
       ],
     };
-  }, [categoryFilteredExpenses]);
+  }, [categoryFilteredExpenses, currency, budgetCurrency]);
   
   return (
     <MainLayout>
@@ -270,7 +307,7 @@ const ReportsPage = () => {
           
           <Card className="metric-card">
             <h3>Highest Expense</h3>
-            <p className="metric-value">{formatCurrency(highestExpense.amount)}</p>
+            <p className="metric-value">{formatCurrency(highestExpense.convertedAmount || highestExpense.amount)}</p>
             <p className="metric-label">{highestExpense.title || 'None'}</p>
           </Card>
         </div>

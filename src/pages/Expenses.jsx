@@ -7,10 +7,12 @@ import { expenseCategories } from '../utils/categories';
 import { categoryIcons } from '../utils/categoryIcons';
 import { getCategoryColor } from '../utils/categories';
 import { useExpenses } from '../context/ExpenseContext';
+import { useCurrency, CURRENCIES } from '../context/CurrencyContext';
 import '../styles/Expenses.css';
 
 const Expenses = () => {
   const { expenses, deleteExpense } = useExpenses();
+  const currency = useCurrency();
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -40,7 +42,7 @@ const Expenses = () => {
       
       // Filter by search term
       const matchesSearch = expense.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        expense.description.toLowerCase().includes(searchTerm.toLowerCase());
+        (expense.description && expense.description.toLowerCase().includes(searchTerm.toLowerCase()));
       
       return matchesCategory && matchesSearch;
     });
@@ -54,6 +56,29 @@ const Expenses = () => {
       month: 'short', 
       day: 'numeric' 
     });
+  };
+
+  // Force re-render when currency changes
+  React.useEffect(() => {
+    console.log('Currency changed in Expenses page:', currency?.currency?.code);
+    // This effect will run whenever the currency context changes
+  }, [currency, currency?.currency?.code]);
+
+  // Format amount with currency
+  const formatAmount = (amount, expenseCurrency = 'USD') => {
+    if (!currency) return `$${amount.toFixed(2)}`;
+    
+    try {
+      console.log(`Converting ${amount} ${expenseCurrency} to ${currency.currency.code}`);
+      // Convert amount if the expense currency is different from the display currency
+      const convertedAmount = currency.convertAmount(amount, expenseCurrency);
+      return currency.formatAmount(convertedAmount);
+    } catch (err) {
+      console.error('Error formatting amount:', err);
+      // Fallback if conversion fails
+      const currencySymbol = CURRENCIES[expenseCurrency]?.symbol || '$';
+      return `${currencySymbol}${amount.toFixed(2)}`;
+    }
   };
 
   return (
@@ -137,11 +162,18 @@ const Expenses = () => {
                       <div className="expense-meta">
                         <span>{formatDate(expense.date)}</span>
                         <span className="category-tag">{expense.category}</span>
+                        {expense.currency && currency && expense.currency !== currency.currency.code && (
+                          <span className="currency-tag">
+                            {CURRENCIES[expense.currency]?.symbol} {expense.currency}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
                   <div className="expense-amount-actions">
-                    <div className="expense-amount">${expense.amount.toFixed(2)}</div>
+                    <div className="expense-amount">
+                      {formatAmount(expense.amount, expense.currency)}
+                    </div>
                     <div className="expense-actions">
                       <Link to={`/expenses/edit/${expense.id}`} className="action-button">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">

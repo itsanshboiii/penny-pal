@@ -35,6 +35,44 @@
   margin-bottom: 0;
 }
 
+/* Adjust amount group to be slightly larger than currency */
+.form-row .amount-group {
+  flex: 1.5;
+}
+
+/* Style for the currency select dropdown */
+select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--emerald-primary);
+}
+
+select.error {
+  border-color: var(--error);
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
 .category-label {
   display: block;
   margin-bottom: 8px;
@@ -135,21 +173,47 @@ textarea:focus {
   background-color: rgba(16, 185, 129, 0.15);
 }
 
-.dark-mode textarea {
+.dark-mode textarea,
+.dark-mode select {
   background-color: #1f2937;
   border-color: #374151;
   color: #f3f4f6;
 }
 
-.dark-mode textarea:focus {
+.dark-mode textarea:focus,
+.dark-mode select:focus {
   border-color: var(--emerald-primary);
 }
 
+/* Custom dropdown arrow for dark mode */
+.dark-mode select {
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23D1D5DB'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
+}
+
 /* Responsive styles */
+@media (max-width: 768px) {
+  .form-row {
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  
+  .form-row .form-group {
+    flex: 1 0 45%;
+  }
+  
+  .form-row .amount-group {
+    flex: 1 0 100%;
+  }
+}
+
 @media (max-width: 600px) {
   .form-row {
     flex-direction: column;
     gap: 20px;
+  }
+  
+  .form-row .form-group {
+    flex: 1 0 100%;
   }
   
   .category-selector {

@@ -7,6 +7,7 @@ import Input from '../components/Input';
 import { expenseCategories } from '../utils/categories';
 import { categoryIcons } from '../utils/categoryIcons';
 import { useExpenses } from '../context/ExpenseContext';
+import { useCurrency, CURRENCIES } from '../context/CurrencyContext';
 import '../styles/ExpenseForm.css';
 
 const ExpenseForm = () => {
@@ -14,13 +15,15 @@ const ExpenseForm = () => {
   const { id } = useParams();
   const isEditing = Boolean(id);
   const { addExpense, updateExpense, getExpenseById } = useExpenses();
+  const currency = useCurrency();
 
   const [formData, setFormData] = useState({
     title: '',
     amount: '',
     date: new Date().toISOString().split('T')[0],
     category: '',
-    description: ''
+    description: '',
+    currency: currency ? currency.currency.code : 'USD'
   });
 
   const [errors, setErrors] = useState({});
@@ -34,14 +37,25 @@ const ExpenseForm = () => {
         setFormData({
           ...expenseToEdit,
           date: expenseToEdit.date.split('T')[0], // Format date for input
-          amount: expenseToEdit.amount.toString()
+          amount: expenseToEdit.amount.toString(),
+          currency: expenseToEdit.currency || (currency ? currency.currency.code : 'USD')
         });
       } else {
         // Expense not found, redirect to expenses list
         navigate('/expenses');
       }
     }
-  }, [isEditing, id, getExpenseById, navigate]);
+  }, [isEditing, id, getExpenseById, navigate, currency]);
+
+  // Update default currency when current currency changes
+  useEffect(() => {
+    if (currency && !isEditing) {
+      setFormData(prev => ({
+        ...prev,
+        currency: currency.currency.code
+      }));
+    }
+  }, [currency, isEditing]);
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -76,6 +90,15 @@ const ExpenseForm = () => {
     }
   };
 
+  // Handle currency selection
+  const handleCurrencyChange = (e) => {
+    const selectedCurrency = e.target.value;
+    setFormData({
+      ...formData,
+      currency: selectedCurrency
+    });
+  };
+
   // Validate form
   const validateForm = () => {
     const newErrors = {};
@@ -96,6 +119,10 @@ const ExpenseForm = () => {
     
     if (!formData.category) {
       newErrors.category = 'Please select a category';
+    }
+    
+    if (!formData.currency) {
+      newErrors.currency = 'Currency is required';
     }
     
     setErrors(newErrors);
@@ -141,6 +168,11 @@ const ExpenseForm = () => {
     navigate('/expenses');
   };
 
+  // Get currency symbol for selected currency
+  const getCurrencySymbol = (currencyCode) => {
+    return CURRENCIES[currencyCode]?.symbol || '$';
+  };
+
   return (
     <MainLayout>
       <div className="expense-form-page">
@@ -163,9 +195,9 @@ const ExpenseForm = () => {
             </div>
             
             <div className="form-row">
-              <div className="form-group">
+              <div className="form-group amount-group">
                 <Input
-                  label="Amount ($)"
+                  label={`Amount (${getCurrencySymbol(formData.currency)})`}
                   id="amount"
                   name="amount"
                   type="number"
@@ -176,6 +208,24 @@ const ExpenseForm = () => {
                   placeholder="0.00"
                   error={errors.amount}
                 />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="currency">Currency</label>
+                <select
+                  id="currency"
+                  name="currency"
+                  value={formData.currency}
+                  onChange={handleCurrencyChange}
+                  className={errors.currency ? 'error' : ''}
+                >
+                  {Object.keys(CURRENCIES).map(code => (
+                    <option key={code} value={code}>
+                      {CURRENCIES[code].symbol} {code}
+                    </option>
+                  ))}
+                </select>
+                {errors.currency && <p className="error-message">{errors.currency}</p>}
               </div>
               
               <div className="form-group">

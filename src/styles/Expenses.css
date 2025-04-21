@@ -162,6 +162,15 @@
   font-size: 0.75rem;
 }
 
+.currency-tag {
+  display: inline-block;
+  background-color: var(--bg-gray-200);
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
 .expense-amount-actions {
   display: flex;
   align-items: center;
@@ -209,6 +218,10 @@
 /* Dark Mode */
 .dark-mode .category-tag {
   background-color: var(--dark-bg-secondary);
+}
+
+.dark-mode .currency-tag {
+  background-color: var(--dark-bg-tertiary);
 }
 
 .dark-mode .expense-item {

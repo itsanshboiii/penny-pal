@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import ThemeToggle from './ThemeToggle';
+import CurrencySelector from './CurrencySelector';
 import '../styles/Header.css';
 
 const Header = () => {
@@ -19,6 +20,7 @@ const Header = () => {
         </nav>
         
         <div className="header-actions">
+          <CurrencySelector />
           <ThemeToggle />
         </div>
       </div>

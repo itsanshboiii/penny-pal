@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { expenseCategories } from '../utils/categories';
+import { useCurrency } from './CurrencyContext';
 
 const ExpenseContext = createContext();
 
@@ -10,6 +11,10 @@ export const ExpenseProvider = ({ children }) => {
   const [budget, setBudget] = useState(1000); // Default total budget amount
   const [categoryBudgets, setCategoryBudgets] = useState({});
   const [alerts, setAlerts] = useState([]);
+  const [budgetCurrency, setBudgetCurrency] = useState('USD');
+  
+  // Get currency context
+  const currency = useCurrency ? useCurrency() : null;
   
   // Initialize default category budgets
   useEffect(() => {
@@ -26,6 +31,7 @@ export const ExpenseProvider = ({ children }) => {
     const storedBudget = localStorage.getItem('budget');
     const storedCategoryBudgets = localStorage.getItem('categoryBudgets');
     const storedAlerts = localStorage.getItem('alerts');
+    const storedBudgetCurrency = localStorage.getItem('budgetCurrency');
     
     if (storedExpenses) {
       setExpenses(JSON.parse(storedExpenses));
@@ -41,6 +47,10 @@ export const ExpenseProvider = ({ children }) => {
 
     if (storedAlerts) {
       setAlerts(JSON.parse(storedAlerts));
+    }
+    
+    if (storedBudgetCurrency) {
+      setBudgetCurrency(storedBudgetCurrency);
     }
   }, []);
   
@@ -64,6 +74,11 @@ export const ExpenseProvider = ({ children }) => {
     localStorage.setItem('alerts', JSON.stringify(alerts));
   }, [alerts]);
   
+  // Save budget currency to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('budgetCurrency', budgetCurrency);
+  }, [budgetCurrency]);
+  
   // Check for budget alerts when expenses change
   useEffect(() => {
     checkBudgetAlerts();
@@ -82,20 +97,30 @@ export const ExpenseProvider = ({ children }) => {
              expenseDate.getFullYear() === currentYear;
     });
     
-    // Calculate total expenses for this month
+    // Calculate total expenses for this month, converting to budget currency if needed
     const totalExpenses = currentMonthExpenses.reduce(
-      (sum, expense) => sum + expense.amount, 
+      (sum, expense) => {
+        const amount = currency ? 
+          currency.convertAmount(expense.amount, expense.currency || budgetCurrency) : 
+          expense.amount;
+        return sum + amount;
+      }, 
       0
     );
     
     const newAlerts = [];
+    
+    // Format budget value
+    const formattedBudget = currency && currency.currency.code === budgetCurrency ? 
+      currency.formatAmount(budget) : 
+      `${budget.toFixed(2)} ${budgetCurrency}`;
     
     // Check total budget
     if (totalExpenses > budget * 0.9 && totalExpenses < budget) {
       newAlerts.push({
         id: Date.now() + '-total-90',
         type: 'warning',
-        message: `You've used 90% of your total monthly budget of ${budget.toFixed(2)}`,
+        message: `You've used 90% of your total monthly budget of ${formattedBudget}`,
         seen: false,
         timestamp: new Date().toISOString()
       });
@@ -103,7 +128,7 @@ export const ExpenseProvider = ({ children }) => {
       newAlerts.push({
         id: Date.now() + '-total-100',
         type: 'danger',
-        message: `You've exceeded your total monthly budget of ${budget.toFixed(2)}`,
+        message: `You've exceeded your total monthly budget of ${formattedBudget}`,
         seen: false,
         timestamp: new Date().toISOString()
       });
@@ -112,10 +137,13 @@ export const ExpenseProvider = ({ children }) => {
     // Check category budgets
     const categoryTotals = {};
     
-    // Calculate totals for each category
+    // Calculate totals for each category, converting currencies if needed
     currentMonthExpenses.forEach(expense => {
-      const { category, amount } = expense;
-      categoryTotals[category] = (categoryTotals[category] || 0) + amount;
+      const { category, amount, currency: expenseCurrency } = expense;
+      const convertedAmount = currency ? 
+        currency.convertAmount(amount, expenseCurrency || budgetCurrency) : 
+        amount;
+      categoryTotals[category] = (categoryTotals[category] || 0) + convertedAmount;
     });
     
     // Check each category against its budget
@@ -123,11 +151,16 @@ export const ExpenseProvider = ({ children }) => {
       if (categoryBudget > 0) { // Only check categories with a budget set
         const categoryTotal = categoryTotals[category] || 0;
         
+        // Format category budget value
+        const formattedCategoryBudget = currency && currency.currency.code === budgetCurrency ? 
+          currency.formatAmount(categoryBudget) : 
+          `${categoryBudget.toFixed(2)} ${budgetCurrency}`;
+        
         if (categoryTotal > categoryBudget * 0.9 && categoryTotal < categoryBudget) {
           newAlerts.push({
             id: Date.now() + `-${category}-90`,
             type: 'warning',
-            message: `You've used 90% of your budget for ${category} (${categoryBudget.toFixed(2)})`,
+            message: `You've used 90% of your budget for ${category} (${formattedCategoryBudget})`,
             seen: false,
             category,
             timestamp: new Date().toISOString()
@@ -136,7 +169,7 @@ export const ExpenseProvider = ({ children }) => {
           newAlerts.push({
             id: Date.now() + `-${category}-100`,
             type: 'danger',
-            message: `You've exceeded your budget for ${category} (${categoryBudget.toFixed(2)})`,
+            message: `You've exceeded your budget for ${category} (${formattedCategoryBudget})`,
             seen: false,
             category,
             timestamp: new Date().toISOString()
@@ -159,9 +192,12 @@ export const ExpenseProvider = ({ children }) => {
   };
   
   // Update budget amount
-  const updateBudget = (newBudget) => {
+  const updateBudget = (newBudget, currency) => {
     if (newBudget >= 0) {
       setBudget(newBudget);
+      if (currency) {
+        setBudgetCurrency(currency);
+      }
     }
   };
 
@@ -193,6 +229,7 @@ export const ExpenseProvider = ({ children }) => {
   const addExpense = (expense) => {
     const newExpense = {
       ...expense,
+      currency: expense.currency || (currency ? currency.currency.code : 'USD'),
       id: Date.now().toString(),
       createdAt: new Date().toISOString()
     };
@@ -202,9 +239,15 @@ export const ExpenseProvider = ({ children }) => {
   
   // Update existing expense
   const updateExpense = (updatedExpense) => {
+    // Ensure currency is set
+    const expenseWithCurrency = {
+      ...updatedExpense,
+      currency: updatedExpense.currency || (currency ? currency.currency.code : 'USD')
+    };
+    
     setExpenses(
       expenses.map(expense => 
-        expense.id === updatedExpense.id ? updatedExpense : expense
+        expense.id === updatedExpense.id ? expenseWithCurrency : expense
       )
     );
   };
@@ -245,27 +288,60 @@ export const ExpenseProvider = ({ children }) => {
              expenseDate.getFullYear() === currentYear;
     });
     
-    return monthExpenses.reduce((total, expense) => total + expense.amount, 0);
+    return monthExpenses.reduce((total, expense) => {
+      // Convert to display currency if needed
+      const amount = currency ? 
+        currency.convertAmount(expense.amount, expense.currency || budgetCurrency) : 
+        expense.amount;
+      return total + amount;
+    }, 0);
   };
   
-  return (
-    <ExpenseContext.Provider value={{
-      expenses,
-      budget,
-      categoryBudgets,
-      alerts,
-      addExpense,
-      updateExpense,
-      deleteExpense,
-      getExpenseById,
-      updateBudget,
-      updateCategoryBudget,
-      markAlertAsSeen,
-      clearAlerts,
-      getCategoryExpensesForMonth,
-      getTotalExpensesForMonth
-    }}>
-      {children}
-    </ExpenseContext.Provider>
-  );
+  // Get budget currency
+  const getBudgetCurrency = () => {
+    return budgetCurrency;
+  };
+  
+  // Change budget currency
+  const changeBudgetCurrency = (newCurrency) => {
+    if (currency && currency.currencies[newCurrency]) {
+      // Convert budget amount to new currency
+      const newBudgetAmount = currency.convertAmount(budget, budgetCurrency);
+      setBudget(newBudgetAmount);
+      setBudgetCurrency(newCurrency);
+      
+      // Convert category budgets
+      const newCategoryBudgets = {};
+      Object.entries(categoryBudgets).forEach(([category, amount]) => {
+        if (amount > 0) {
+          newCategoryBudgets[category] = currency.convertAmount(amount, budgetCurrency);
+        } else {
+          newCategoryBudgets[category] = 0;
+        }
+      });
+      setCategoryBudgets(newCategoryBudgets);
+    }
+  };
+  
+  const value = {
+    expenses,
+    budget,
+    budgetCurrency,
+    categoryBudgets,
+    alerts,
+    addExpense,
+    updateExpense,
+    deleteExpense,
+    getExpenseById,
+    updateBudget,
+    updateCategoryBudget,
+    getCategoryExpensesForMonth,
+    getTotalExpensesForMonth,
+    markAlertAsSeen,
+    clearAlerts,
+    getBudgetCurrency,
+    changeBudgetCurrency
+  };
+  
+  return <ExpenseContext.Provider value={value}>{children}</ExpenseContext.Provider>;
 }; 

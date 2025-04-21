@@ -1,17 +1,24 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import MainLayout from '../layouts/MainLayout';
 import { Link } from 'react-router-dom';
 import Card from '../components/Card';
 import { useExpenses } from '../context/ExpenseContext';
+import { useCurrency, CURRENCIES } from '../context/CurrencyContext';
 import { expenseCategories } from '../utils/categories';
 import { categoryIcons } from '../utils/categoryIcons';
 import { getCategoryColor } from '../utils/categories';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
-  const { expenses, budget, updateBudget } = useExpenses();
+  const { expenses, budget, updateBudget, budgetCurrency } = useExpenses();
+  const currency = useCurrency();
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [budgetInput, setBudgetInput] = useState(budget.toString());
+
+  // Update when currency changes
+  useEffect(() => {
+    console.log('Currency in Dashboard changed to:', currency?.currency?.code);
+  }, [currency, currency?.currency?.code]);
 
   // Calculate summary data for current month
   const summaryData = useMemo(() => {
@@ -26,17 +33,29 @@ const Dashboard = () => {
              expenseDate.getFullYear() === currentYear;
     });
     
-    // Calculate total expenses for current month
+    // Calculate total expenses for current month with currency conversion
     const totalExpenses = currentMonthExpenses.reduce(
-      (total, expense) => total + expense.amount, 
+      (total, expense) => {
+        if (currency) {
+          const converted = currency.convertAmount(expense.amount, expense.currency || 'USD');
+          return total + converted;
+        }
+        return total + expense.amount;
+      }, 
       0
     );
     
+    // Convert budget if needed and calculate remaining
+    let budgetValue = budget;
+    if (currency && budgetCurrency !== currency.currency.code) {
+      budgetValue = currency.convertAmount(budget, budgetCurrency);
+    }
+    
     // Calculate remaining budget
-    const budgetRemaining = Math.max(0, budget - totalExpenses);
+    const budgetRemaining = Math.max(0, budgetValue - totalExpenses);
     
     // Calculate savings (for demonstration purposes, we'll use the remaining budget)
-    const savings = budget > totalExpenses ? budget - totalExpenses : 0;
+    const savings = budgetValue > totalExpenses ? budgetValue - totalExpenses : 0;
 
     // Get recent expenses (last 5)
     const recentExpenses = [...expenses]
@@ -46,13 +65,17 @@ const Dashboard = () => {
     return {
       totalExpenses,
       budgetRemaining,
+      budgetValue,
       savings,
       recentExpenses
     };
-  }, [expenses, budget]);
+  }, [expenses, budget, currency, budgetCurrency]);
 
   // Format currency
   const formatCurrency = (amount) => {
+    if (currency) {
+      return currency.formatAmount(amount);
+    }
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -67,6 +90,22 @@ const Dashboard = () => {
       month: 'short', 
       day: 'numeric' 
     });
+  };
+
+  // Format expense amount with currency conversion
+  const formatExpenseAmount = (amount, expenseCurrency = 'USD') => {
+    if (currency) {
+      try {
+        const convertedAmount = currency.convertAmount(amount, expenseCurrency);
+        return currency.formatAmount(convertedAmount);
+      } catch (err) {
+        console.error('Error formatting expense amount:', err);
+      }
+    }
+    
+    // Fallback
+    const currencySymbol = CURRENCIES[expenseCurrency]?.symbol || '$';
+    return `${currencySymbol}${amount.toFixed(2)}`;
   };
 
   // Handle budget input change
@@ -90,6 +129,14 @@ const Dashboard = () => {
       setBudgetInput(budget.toString());
     }
     setIsEditingBudget(!isEditingBudget);
+  };
+
+  // Get currency symbol
+  const getCurrencySymbol = () => {
+    if (currency) {
+      return currency.currency.symbol;
+    }
+    return '$';
   };
 
   return (
@@ -121,7 +168,7 @@ const Dashboard = () => {
             {isEditingBudget ? (
               <form onSubmit={handleBudgetSubmit} className="budget-edit-form">
                 <div className="budget-input-group">
-                  <span className="currency-symbol">$</span>
+                  <span className="currency-symbol">{getCurrencySymbol()}</span>
                   <input
                     type="number"
                     min="0"
@@ -146,7 +193,7 @@ const Dashboard = () => {
             ) : (
               <>
                 <p className="summary-amount">{formatCurrency(summaryData.budgetRemaining)}</p>
-                <p className="summary-period">Monthly Budget: {formatCurrency(budget)}</p>
+                <p className="summary-period">Monthly Budget: {formatCurrency(summaryData.budgetValue)}</p>
               </>
             )}
           </Card>
@@ -242,7 +289,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <div className="recent-expense-amount">
-                    {formatCurrency(expense.amount)}
+                    {formatExpenseAmount(expense.amount, expense.currency)}
                   </div>
                 </div>
               ))}

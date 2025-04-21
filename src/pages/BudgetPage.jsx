@@ -1,24 +1,64 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import MainLayout from '../layouts/MainLayout';
+import { useExpenses } from '../context/ExpenseContext';
+import { useCurrency, CURRENCIES } from '../context/CurrencyContext';
 import '../styles/BudgetPage.css';
 
-// Mock budget data - replace with actual data from your context or API
-const initialBudgets = [
-  { id: 1, category: 'Food', budgeted: 500, spent: 350 },
-  { id: 2, category: 'Transportation', budgeted: 200, spent: 180 },
-  { id: 3, category: 'Entertainment', budgeted: 150, spent: 75 },
-  { id: 4, category: 'Utilities', budgeted: 300, spent: 290 },
-];
-
 const BudgetPage = () => {
-  const [budgets, setBudgets] = useState(initialBudgets);
+  const { categoryBudgets, updateCategoryBudget, expenses, budgetCurrency } = useExpenses();
+  const currency = useCurrency();
+  const [budgets, setBudgets] = useState([]);
   const [totalBudgeted, setTotalBudgeted] = useState(0);
   const [totalSpent, setTotalSpent] = useState(0);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newBudget, setNewBudget] = useState({ category: '', budgeted: 0 });
   
   const navigate = useNavigate();
+  
+  // Update when currency changes
+  useEffect(() => {
+    console.log('Currency in BudgetPage changed to:', currency?.currency?.code);
+    
+    // Convert existing budget data to the current format
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    
+    // Prepare budget data from context
+    const budgetData = Object.entries(categoryBudgets).map(([category, amount]) => {
+      // Calculate spent amount for this category in current month
+      const spent = expenses
+        .filter(expense => {
+          const expenseDate = new Date(expense.date);
+          return expense.category === category && 
+                 expenseDate.getMonth() === currentMonth && 
+                 expenseDate.getFullYear() === currentYear;
+        })
+        .reduce((total, expense) => {
+          // Convert to display currency if needed
+          const convertedAmount = currency 
+            ? currency.convertAmount(expense.amount, expense.currency || budgetCurrency)
+            : expense.amount;
+          return total + convertedAmount;
+        }, 0);
+      
+      // Convert budget amount if needed
+      let budgetAmount = amount;
+      if (currency && budgetCurrency !== currency.currency.code) {
+        budgetAmount = currency.convertAmount(amount, budgetCurrency);
+      }
+      
+      return {
+        id: category,
+        category: category,
+        budgeted: budgetAmount,
+        spent: spent
+      };
+    }).filter(budget => budget.category && budget.budgeted > 0);
+    
+    setBudgets(budgetData);
+  }, [expenses, categoryBudgets, currency, budgetCurrency]);
   
   useEffect(() => {
     // Calculate totals
@@ -31,36 +71,65 @@ const BudgetPage = () => {
   
   const handleAddBudget = () => {
     if (newBudget.category && newBudget.budgeted > 0) {
-      const updatedBudgets = [
-        ...budgets,
-        {
-          id: Date.now(), // Simple ID generation
-          category: newBudget.category,
-          budgeted: Number(newBudget.budgeted),
-          spent: 0,
-        },
-      ];
+      // Convert from current currency to budget currency if needed
+      let budgetAmount = Number(newBudget.budgeted);
+      if (currency && currency.currency.code !== budgetCurrency) {
+        // Convert display currency to budget currency for storage
+        budgetAmount = currency.convertAmount(
+          budgetAmount, 
+          currency.currency.code, 
+          budgetCurrency
+        );
+      }
       
-      setBudgets(updatedBudgets);
+      // Update the budget in context
+      updateCategoryBudget(newBudget.category, budgetAmount);
+      
+      // Reset form
       setNewBudget({ category: '', budgeted: 0 });
       setShowAddForm(false);
     }
   };
   
   const handleUpdateBudget = (id, newAmount) => {
-    const updatedBudgets = budgets.map(budget => 
-      budget.id === id ? { ...budget, budgeted: Number(newAmount) } : budget
-    );
-    setBudgets(updatedBudgets);
+    // Convert from current currency to budget currency if needed
+    let budgetAmount = Number(newAmount);
+    if (currency && currency.currency.code !== budgetCurrency) {
+      // Convert display currency to budget currency for storage
+      budgetAmount = currency.convertAmount(
+        budgetAmount, 
+        currency.currency.code, 
+        budgetCurrency
+      );
+    }
+    
+    // Update the budget in context
+    updateCategoryBudget(id, budgetAmount);
   };
   
   const handleDeleteBudget = (id) => {
-    const updatedBudgets = budgets.filter(budget => budget.id !== id);
-    setBudgets(updatedBudgets);
+    // Set budget to 0 to effectively delete it
+    updateCategoryBudget(id, 0);
   };
   
   const calculatePercentage = (spent, budgeted) => {
     return budgeted > 0 ? (spent / budgeted) * 100 : 0;
+  };
+  
+  // Format currency
+  const formatCurrency = (amount) => {
+    if (currency) {
+      return currency.formatAmount(amount);
+    }
+    return `$${amount.toFixed(2)}`;
+  };
+  
+  // Get currency symbol
+  const getCurrencySymbol = () => {
+    if (currency) {
+      return currency.currency.symbol;
+    }
+    return '$';
   };
   
   return (
@@ -71,17 +140,17 @@ const BudgetPage = () => {
         <div className="budget-summary">
           <div className="summary-card">
             <h3>Total Budgeted</h3>
-            <p className="amount">${totalBudgeted.toFixed(2)}</p>
+            <p className="amount">{formatCurrency(totalBudgeted)}</p>
           </div>
           
           <div className="summary-card">
             <h3>Total Spent</h3>
-            <p className="amount">${totalSpent.toFixed(2)}</p>
+            <p className="amount">{formatCurrency(totalSpent)}</p>
           </div>
           
           <div className="summary-card">
             <h3>Remaining</h3>
-            <p className="amount">${(totalBudgeted - totalSpent).toFixed(2)}</p>
+            <p className="amount">{formatCurrency(totalBudgeted - totalSpent)}</p>
           </div>
         </div>
         
@@ -102,12 +171,15 @@ const BudgetPage = () => {
               value={newBudget.category}
               onChange={(e) => setNewBudget({...newBudget, category: e.target.value})}
             />
-            <input
-              type="number"
-              placeholder="Budget amount"
-              value={newBudget.budgeted}
-              onChange={(e) => setNewBudget({...newBudget, budgeted: e.target.value})}
-            />
+            <div className="budget-input-group">
+              <span className="currency-symbol">{getCurrencySymbol()}</span>
+              <input
+                type="number"
+                placeholder="Budget amount"
+                value={newBudget.budgeted}
+                onChange={(e) => setNewBudget({...newBudget, budgeted: e.target.value})}
+              />
+            </div>
             <button onClick={handleAddBudget}>Add</button>
           </div>
         )}
@@ -126,8 +198,9 @@ const BudgetPage = () => {
               </div>
               
               <div className="budget-amounts">
-                <div>
+                <div className="budget-input-group">
                   <span>Budgeted: </span>
+                  <span className="currency-symbol">{getCurrencySymbol()}</span>
                   <input
                     type="number"
                     value={budget.budgeted}
@@ -135,10 +208,10 @@ const BudgetPage = () => {
                   />
                 </div>
                 <div>
-                  <span>Spent: ${budget.spent.toFixed(2)}</span>
+                  <span>Spent: {formatCurrency(budget.spent)}</span>
                 </div>
                 <div>
-                  <span>Remaining: ${(budget.budgeted - budget.spent).toFixed(2)}</span>
+                  <span>Remaining: {formatCurrency(budget.budgeted - budget.spent)}</span>
                 </div>
               </div>
               
