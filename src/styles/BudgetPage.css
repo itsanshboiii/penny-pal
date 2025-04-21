@@ -1,0 +1,225 @@
+.budget-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.page-title {
+  margin-bottom: 2rem;
+  color: var(--text-primary);
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+.budget-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-3px);
+}
+
+.summary-card h3 {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.summary-card .amount {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.budget-controls {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.add-budget-btn {
+  background-color: var(--emerald-primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.add-budget-btn:hover {
+  background-color: var(--emerald-dark);
+}
+
+.add-budget-form {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  display: flex;
+  gap: 1rem;
+}
+
+.add-budget-form input {
+  padding: 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  flex: 1;
+}
+
+.add-budget-form input:focus {
+  outline: 2px solid var(--emerald-primary);
+  border-color: var(--emerald-primary);
+}
+
+.add-budget-form button {
+  background-color: var(--emerald-primary);
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.add-budget-form button:hover {
+  background-color: var(--emerald-dark);
+}
+
+.budget-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.budget-card {
+  background-color: white;
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.budget-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.budget-card-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.delete-btn {
+  background-color: transparent;
+  color: var(--text-secondary);
+  border: none;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.delete-btn:hover {
+  color: var(--error);
+}
+
+.budget-amounts {
+  margin-bottom: 1.5rem;
+}
+
+.budget-amounts div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.budget-amounts input {
+  width: 100px;
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  text-align: right;
+}
+
+.budget-amounts input:focus {
+  outline: 2px solid var(--emerald-primary);
+  border-color: var(--emerald-primary);
+}
+
+.progress-container {
+  height: 0.75rem;
+  background-color: #e5e7eb;
+  border-radius: 1rem;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 1rem;
+  transition: width 0.3s ease;
+}
+
+.progress-label {
+  text-align: right;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+}
+
+/* Dark mode styles */
+@media (prefers-color-scheme: dark) {
+  .summary-card,
+  .budget-card,
+  .add-budget-form {
+    background-color: var(--surface-dark);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  }
+
+  .budget-amounts input,
+  .add-budget-form input {
+    background-color: var(--surface-dark);
+    border-color: #4b5563;
+    color: var(--text-light);
+  }
+
+  .progress-container {
+    background-color: #4b5563;
+  }
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .budget-page {
+    padding: 1.5rem;
+  }
+
+  .budget-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .budget-list {
+    grid-template-columns: 1fr;
+  }
+
+  .add-budget-form {
+    flex-direction: column;
+  }
+} 

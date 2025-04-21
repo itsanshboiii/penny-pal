@@ -37,6 +37,7 @@
   --warning: #F59E0B;
   --success: #10B981;
   --info: #3B82F6;
+  --error: var(--danger);
   
   /* Dark mode colors */
   --dark-bg-primary: #111827;
